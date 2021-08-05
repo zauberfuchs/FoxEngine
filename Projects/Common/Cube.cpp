@@ -80,13 +80,6 @@ void Cube::addLightSource(std::shared_ptr<Light> lightSource)
 	Cube::lightSources.push_back(lightSource);
 }
 
-void Cube::setReflections(const int& hasAmbient, const int& hasDiffuse, const int& hasSpecular)
-{
-	Cube::hasAmbient = hasAmbient;
-	Cube::hasDiffuse = hasDiffuse;
-	Cube::hasSpecular = hasSpecular;
-}
-
 void Cube::setMaterial(Material& material)
 {
 	Cube::material = material;
@@ -109,12 +102,10 @@ void Cube::Draw(Shader& shader, Camera& camera)
 		if (type == "diffuseMap")
 		{
 			num = std::to_string(numDiffuse++);
-			hasDiffuseMap = 1;
 		}
 		else if (type == "specularMap")
 		{
 			num = std::to_string(numSpecular++);
-			hasSpecularMap = 1;
 		}
 		else
 		{
@@ -127,32 +118,31 @@ void Cube::Draw(Shader& shader, Camera& camera)
 	for (int i = 0; i < lightSources.size(); i++) {
 		if (lightSources[i]->type == POINT_LIGHT)
 		{
-			shader.SetUniform3f("lightPos", lightSources[0]->position);
-			shader.SetUniform3f("lightColor", lightSources[0]->color);
+			shader.SetUniform3f("pointLights[" + to_string(i) + "].position", lightSources[i]->position);
+			shader.SetUniform1f("pointLights[" + to_string(i) + "].constant", lightSources[i]->constant);
+			shader.SetUniform1f("pointLights[" + to_string(i) + "].linear", lightSources[i]->linear);
+			shader.SetUniform1f("pointLights[" + to_string(i) + "].quadratic", lightSources[i]->quadratic);
+			shader.SetUniform3f("pointLights[" + to_string(i) + "].ambient", material.ambient);
+			shader.SetUniform3f("pointLights[" + to_string(i) + "].diffuse", material.diffuse);
+			shader.SetUniform3f("pointLights[" + to_string(i) + "].specular", material.specular);
+			shader.SetUniform1f("material.shininess", material.shininess);
 		}
 		else if (lightSources[i]->type == DIRECTIONAL_LIGHT)
 		{
-			shader.SetUniform3f("lightPos", lightSources[0]->position);
-			shader.SetUniform3f("lightColor", lightSources[0]->color);
+			shader.SetUniform3f("dirLight.direction", lightSources[i]->direction);
+			shader.SetUniform3f("dirLight.ambient", material.ambient);
+			shader.SetUniform3f("dirLight.diffuse", material.diffuse);
+			shader.SetUniform3f("dirLight.specular", material.specular);
+			shader.SetUniform1f("material.shininess", material.shininess);
 		}
-	}
-	shader.SetUniform1i("hasAmbient", hasAmbient);
-	shader.SetUniform1i("hasDiffuse", hasDiffuse);
-	shader.SetUniform1i("hasSpecular", hasSpecular);
-	shader.SetUniform1i("hasTexture", hasTexture);
 
-	shader.SetUniform1i("hasDiffuseMap", hasDiffuseMap);
-	shader.SetUniform1i("hasSpecularMap", hasSpecularMap);
+	}
+	shader.SetUniform1i("hasTexture", hasTexture);
 
 	shader.SetUniformMat4f("model", m_Model);
 
 	shader.SetUniform3f("objectColor", objectColor);
 	shader.SetUniform3f("camPos", camera.Position);
-
-	shader.SetUniform3f("material.ambient", material.ambient);
-	shader.SetUniform3f("material.diffuse", material.diffuse);
-	shader.SetUniform3f("material.specular", material.specular);
-	shader.SetUniform1f("material.shininess", material.shininess);
 
 	// Draw the actual mesh
 	glDrawElements(GL_TRIANGLES, (GLsizei)m_Indices.size(), GL_UNSIGNED_INT, nullptr);

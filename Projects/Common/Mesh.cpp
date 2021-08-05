@@ -88,13 +88,6 @@ void Mesh::addLightSource(std::shared_ptr<Light> lightSource)
 	Mesh::lightSources.push_back(lightSource);
 }
 
-void Mesh::setReflections(const int& hasAmbient, const int& hasDiffuse, const int& hasSpecular)
-{
-	Mesh::hasAmbient = hasAmbient;
-	Mesh::hasDiffuse = hasDiffuse;
-	Mesh::hasSpecular = hasSpecular;
-}
-
 void Mesh::setMaterial(Material& material)
 {
 	Mesh::material = material;
@@ -144,7 +137,7 @@ void Mesh::Draw(Shader& shader, Camera& camera)
 
 	shader.SetUniform3f("objectColor", objectColor);
 	shader.SetUniform3f("camPos", camera.Position);
-	shader.SetUniform1f("numPointlights", lightSources.size());
+	shader.SetUniform1i("hasTexture", hasTexture);
 	for (int i = 0; i < lightSources.size(); i++) {
 		if(lightSources[i]->type == POINT_LIGHT)
 		{

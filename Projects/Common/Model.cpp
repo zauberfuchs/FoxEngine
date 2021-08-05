@@ -49,12 +49,6 @@ void Model::addLightSource(std::shared_ptr<Light> lightSource)
 		m.addLightSource(lightSource);
 }
 
-void Model::setReflections(const int& hasAmbient, const int& hasDiffuse, const int& hasSpecular)
-{
-	for (Mesh& m : m_Meshes)
-		m.setReflections(hasAmbient, hasDiffuse, hasSpecular);
-}
-
 void Model::setMaterial(Material& material)
 {
 	for (Mesh& m : m_Meshes)

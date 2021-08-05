@@ -23,9 +23,6 @@ uniform vec3 objectColor;
 uniform vec3 camPos;
 
 uniform int hasTexture;
-uniform int hasAmbient;
-uniform int hasDiffuse;
-uniform int hasSpecular;
 
 uniform Material material;
 
@@ -44,29 +41,20 @@ void main()
 
 
 	// ambient
-    if(hasAmbient == 1)
-    {
-        ambient = lightColor * material.ambient;
-    }
+    ambient = lightColor * material.ambient;
     
   	
     // diffuse
-    if(hasDiffuse == 1)
-    {
-        float diff = max(dot(norm, lightDir), 0.0);
-        diffuse = lightColor * (diff * material.diffuse);
-    }
+    float diff = max(dot(norm, lightDir), 0.0);
+    diffuse = lightColor * (diff * material.diffuse);
     
 
     // specular
-    if(hasSpecular == 1)
-    {
-        float specularStrength = 0.2f;
-        vec3 viewDirection = normalize(camPos - FragPos);
-        vec3 reflectionDirection = reflect(-lightDir, norm);
-        float specAmount = pow(max(dot(viewDirection, reflectionDirection), 0.0f), material.shininess);
-        specular = lightColor * (specAmount * material.specular);
-    }
+    float specularStrength = 0.2f;
+    vec3 viewDirection = normalize(camPos - FragPos);
+    vec3 reflectionDirection = reflect(-lightDir, norm);
+    float specAmount = pow(max(dot(viewDirection, reflectionDirection), 0.0f), material.shininess);
+    specular = lightColor * (specAmount * material.specular);
     
 
     // texture

@@ -29,7 +29,6 @@ struct Light
 	glm::vec3 direction;
 	glm::vec3 position;
 
-	glm::vec3 color; // wird nur im simpleMeshShader verwendet
 	float constant;
 	float linear;
 	float quadratic;
@@ -47,17 +46,11 @@ public:
 
 	VertexArray VAO;
 
-	int hasTexture = 0;
-	int hasAmbient = 0;
-	int hasDiffuse = 0;
-	int hasSpecular = 0;
-
-	int hasDiffuseMap = 0;
-	int hasSpecularMap = 0;
-
 	glm::vec3 objectColor;
 
 	Material material;
+
+	GLuint hasTexture = 0;
 
 	// setups the mesh
 	virtual void setupMesh() = 0;
@@ -68,7 +61,6 @@ public:
 
 	virtual void setColor(glm::vec3& Color) = 0;
 	virtual void addLightSource(std::shared_ptr<Light> lightSource) = 0;
-	virtual void setReflections(const int& hasAmbient, const int& hasDiffuse, const int& hasSpecular) = 0;
 	virtual void setMaterial(Material& material) = 0;
 };
 

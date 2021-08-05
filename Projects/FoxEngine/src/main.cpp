@@ -5,7 +5,9 @@
 #include "Mesh.h"
 #include "Square.h"
 #include "Cube.h"
-#include "CubeMap.h"
+#include "CubeMap.h"+
+#include "Framebuffer.h"
+#include "Renderbuffer.h"
 
 #include "Model.h"
 #include "utils.h"
@@ -72,7 +74,21 @@ int main() {
 	Cube lightCube;
 	Cube secondQuad;
 	Square ground;
+	Square postFXSquare;
 	CubeMap cubeMap;
+
+
+	///////////////////////////////////////////////////////////////////////////////
+	// Create Frame / Render Buffers
+	///////////////////////////////////////////////////////////////////////////////
+
+	Framebuffer fbo(WIN_WIDTH, WIN_HEIGHT);
+	fbo.createColorTexture();
+	Renderbuffer rbo(WIN_WIDTH, WIN_HEIGHT);
+	fbo.attachRenderBuffer(rbo.getID());
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+	fbo.Unbind();
 
 	///////////////////////////////////////////////////////////////////////////////
 	// Setup Shader
@@ -83,6 +99,8 @@ int main() {
 	Shader modelShader("../Data/modelShader.vert", "../Data/modelShader.frag");
 	Shader simpleMaterialShader("../Data/simpleMaterialShader.vert", "../Data/simpleMaterialShader.frag");
 	Shader skyboxShader("../Data/skyboxShader.vert", "../Data/skyboxShader.frag");
+	Shader simpleColorShader("../Data/simpleMaterialShader.vert", "../Data/simpleColorShader.frag");
+	Shader postFXShader("../Data/postFX.vert", "../Data/postFX.frag");
 
 	///////////////////////////////////////////////////////////////////////////////
 	// Setup Textures
@@ -98,7 +116,7 @@ int main() {
 	m.ambient = glm::vec3(0.3f, 0.3f, 0.3f);
 	m.diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
 	m.specular = glm::vec3(0.5f, 0.5f, 0.5f);
-	m.shininess = 32.0f;
+	m.shininess = 232.0f;
 
 	///////////////////////////////////////////////////////////////////////////////
 	// Setup Model
@@ -140,7 +158,6 @@ int main() {
 	cubeLight->constant = 1.0f;
 	cubeLight->linear = 0.9f;
 	cubeLight->quadratic = 0.032f;
-	cubeLight->color = glm::vec3(1.0f);
 
 	shared_ptr<Light> sunLight = make_unique<Light>();
 	sunLight->type = POINT_LIGHT;
@@ -157,7 +174,6 @@ int main() {
 	// ----------------------------------
 	glm::mat4 wcs;
 
-	
 	moon->addLightSource(sunLight);
 	earth->addLightSource(sunLight);
 	mars->addLightSource(sunLight);
@@ -178,14 +194,24 @@ int main() {
 	// main Rendering loop
 	// -------------------
 	while (!glfwWindowShouldClose(window)) {
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		fbo.Bind();
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		// gets the size of the window in pixels
 		glfwGetFramebufferSize(window, &width, &height);
 		// Specify the viewport of OpenGL in the Window
 		// In this case the viewport goes from x = 0, y = 0, to x = 800, y = 800
 		glViewport(0, 0, width, height);
-		
-	
+
+		glEnable(GL_DEPTH_TEST);
+
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+		glFrontFace(GL_CCW);
+
+		glEnable(GL_STENCIL_TEST);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		glStencilMask(0x00);
+
 		// per-frame time logic
 		// --------------------
 		double currentFrame = glfwGetTime();
@@ -201,10 +227,7 @@ int main() {
 		{
 			camera.updateCameraWindow(width, height);
 		}
-		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-		glFrontFace(GL_CCW);
+		
 
 		// initialize imgui frame
 		// ----------------------
@@ -221,27 +244,18 @@ int main() {
 		
 		// light source
 		// ------------
-		//{	
-		//	// cube transformations
-		//	// --------------------
-		//	cubeLight->position = glm::translate(wcs, translationB) * glm::vec4(cubeLight->position, 1.0);
-		//	lightCube.translate(wcs, cubeLight->position);
-		//	lightCube.scale(lightCube.getModelMatrix(), glm::vec3(0.2f));
+		{	
+			// cube transformations
+			// --------------------
+			cubeLight->position = glm::translate(wcs, translationB) * glm::vec4(cubeLight->position, 1.0);
+			lightCube.translate(wcs, cubeLight->position);
+			lightCube.scale(lightCube.getModelMatrix(), glm::vec3(0.2f));
 
-		//	lightCube.setColor(glm::vec3(1.0f));
+			lightCube.setColor(glm::vec3(1.0f));
 
-		//	// draw the mesh
-		//	// -------------
-		//	lightCube.Draw(lightShader, camera);
-		//}
-
-		{
-			sun->translate(wcs, glm::vec3(0.0f, 8.0f, 0.0f));
-			sun->rotate(sun->getModelMatrix(), glm::vec3(0.0f, glfwGetTime()*25, 0.0f));
-			sun->setColor(glm::vec3(0.9f, 0.6f, 0.0f));
 			// draw the mesh
 			// -------------
-			sun->Draw(simpleMaterialShader, camera);
+			lightCube.Draw(lightShader, camera);
 		}
 
 		{	
@@ -295,77 +309,77 @@ int main() {
 		}
 
 
-		//// first cube
-		//// ----------
-		//{
-		//	// cube transformations
-		//	// --------------------
-		//	cube.translate(wcs, translationA);
-		//	cube.scale(cube.getModelMatrix(), scaleA);
-		//	cube.translate(cube.getModelMatrix(), glm::vec3(0.0f, 0.5f, 0.0f));
-		//	
-		//	cube.setColor(glm::vec3(clear_color.x, clear_color.y, clear_color.z));;
-		//	cube.setReflections(1, 0, 0);
+		// first cube
+		// ----------
+		{
+			// cube transformations
+			// --------------------
+			cube.translate(wcs, translationA);
+			cube.scale(cube.getModelMatrix(), scaleA);
+			cube.translate(cube.getModelMatrix(), glm::vec3(0.0f, 0.5f, 0.0f));
+			
+			cube.setColor(glm::vec3(clear_color.x, clear_color.y, clear_color.z));;
 
-		//	cube.setMaterial(m);
+			cube.setMaterial(m);
 
-		//	// draw the mesh
-		//	// -------------
-		//	cube.Draw(simpleMeshShader, camera);
-		//}
+			// draw the mesh
+			// -------------
+			cube.Draw(simpleMaterialShader, camera);
+		}
 
-		//// first quad
-		//// -----------
-		//{	
-		//	// cube transformations
-		//	// --------------------
-		//	quad.translate(wcs, glm::vec3(1.2f, 0.0f, 0.0f));
-		//	quad.rotate(quad.getModelMatrix(), glm::vec3(0.0f, 0.0f, 35.0f));
-		//	quad.scale(quad.getModelMatrix(), glm::vec3(1.0f, 2.0f, 1.0f));
-		//	quad.translate(quad.getModelMatrix(), glm::vec3(0.5f, 0.5f, 0.0f));
+		// first quad
+		// -----------
+		{	
+			// cube transformations
+			// --------------------
+			quad.translate(wcs, glm::vec3(1.2f, 0.0f, 0.0f));
+			quad.rotate(quad.getModelMatrix(), glm::vec3(0.0f, 0.0f, 35.0f));
+			quad.scale(quad.getModelMatrix(), glm::vec3(1.0f, 2.0f, 1.0f));
+			quad.translate(quad.getModelMatrix(), glm::vec3(0.5f, 0.5f, 0.0f));
 
-		//	quad.setColor(glm::vec3(0.8f, 0.5f, 0.5f));
-		//	quad.setReflections(0, 0, 1);
-		//	quad.setMaterial(m);
+			quad.setColor(glm::vec3(0.8f, 0.5f, 0.5f));
+			quad.setMaterial(m);
 
-		//	// draw the mesh
-		//	// -------------
-		//	quad.Draw(simpleMeshShader, camera);
-		//}
+			// draw the mesh
+			// -------------
+			quad.Draw(simpleMaterialShader, camera);
+		}
 
-		//// second quad
-		//// -----------
-		//{
-		//	// cube transformations
-		//	// --------------------
-		//	secondQuad.translate(wcs, glm::vec3(-0.5f, 0.0f, 0.25f));
-		//	secondQuad.rotate(secondQuad.getModelMatrix(), glm::vec3(0.0f, 0.0f, 90.0f));
-		//	secondQuad.scale(secondQuad.getModelMatrix(), glm::vec3(0.5f, 1.0f, 0.5f));
-		//	secondQuad.translate(secondQuad.getModelMatrix(), glm::vec3(0.5f, 0.5f, 0.0f));
+		// second quad
+		// -----------
+		{
+			// cube transformations
+			// --------------------
+			secondQuad.translate(wcs, glm::vec3(-0.5f, 0.0f, 0.25f));
+			secondQuad.rotate(secondQuad.getModelMatrix(), glm::vec3(0.0f, 0.0f, 90.0f));
+			secondQuad.scale(secondQuad.getModelMatrix(), glm::vec3(0.5f, 1.0f, 0.5f));
+			secondQuad.translate(secondQuad.getModelMatrix(), glm::vec3(0.5f, 0.5f, 0.0f));
 
-		//	secondQuad.setColor(glm::vec3(0.5f, 0.8f, 0.8f));
-		//	secondQuad.setReflections(0, 1, 0);
-		//	secondQuad.setMaterial(m);
+			secondQuad.setColor(glm::vec3(0.5f, 0.8f, 0.8f));
+			secondQuad.setMaterial(m);
 
-		//	// draw the mesh
-		//	// -------------
-		//	secondQuad.Draw(simpleMeshShader, camera);
-		//}
+			// draw the mesh
+			// -------------
+			secondQuad.Draw(simpleMaterialShader, camera);
+		}
 
-		//// ground
-		//// ------
-		//{
-		//	// ground transformations
-		//	// --------------------
-		//	ground.scale(wcs, glm::vec3(20.f));
-		//	ground.setColor(glm::vec3(1.0f, 1.0f, 1.0f));
+		// ground
+		// ------
+		{
+			// ground transformations
+			// --------------------
+			
+			ground.scale(wcs, glm::vec3(20.f));
+			ground.rotate(ground.getModelMatrix(), glm::vec3(-90.0f, 0.0f, 0.0f));
+			ground.setColor(glm::vec3(1.0f, 1.0f, 1.0f));
 
-		//	ground.setReflections(1, 1, 1);
-		//	ground.setMaterial(m);
-		//	// draw the mesh
-		//	// -------------
-		//	ground.Draw(simpleMeshShader, camera);
-		//}
+			ground.setMaterial(m);
+			// draw the mesh
+			// -------------
+			ground.Draw(simpleMaterialShader, camera);
+		}
+
+	
 
 		// imgui
 		// -----
@@ -387,9 +401,37 @@ int main() {
 		{
 			cubeMap.Draw(skyboxShader, camera);
 		}
+
+		{
+			sun->translate(wcs, glm::vec3(0.0f, 8.0f, 0.0f));
+			sun->rotate(sun->getModelMatrix(), glm::vec3(0.0f, glfwGetTime() * 25, 0.0f));
+			sun->setColor(glm::vec3(0.9f, 0.6f, 0.0f));
+			//sun->scale(sun->getModelMatrix(), glm::vec3(2.0f));
+			// draw the mesh
+			// -------------
+
+			glStencilFunc(GL_ALWAYS, 1, 0xFF);
+			glStencilMask(0xFF);
+			sun->Draw(simpleMaterialShader, camera);
+			glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+			glStencilMask(0x00);
+			//glDisable(GL_DEPTH_TEST);
+			sun->scale(sun->getModelMatrix(), glm::vec3(1.03f));
+			sun->Draw(simpleColorShader, camera);
+			glStencilMask(0xFF);
+			glStencilFunc(GL_ALWAYS, 1, 0xFF);
+			glEnable(GL_DEPTH_TEST);
+		}
+
+
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-		
+
+		fbo.Unbind();
+		postFXShader.Bind();
+		glDisable(GL_DEPTH_TEST);
+		glBindTexture(GL_TEXTURE_2D, fbo.getColorTextureID());
+		postFXSquare.Draw(postFXShader, camera);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

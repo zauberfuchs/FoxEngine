@@ -76,7 +76,6 @@ public:
 
 	void setColor(glm::vec3& color);
 	void addLightSource(std::shared_ptr<Light> lightSource);
-	void setReflections(const int& hasAmbient, const int& hasDiffuse, const int& hasSpecular);
 	void setMaterial(Material& material);
 };
 #endif

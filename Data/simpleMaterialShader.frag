@@ -54,7 +54,12 @@ in vec2 texCoord;
 uniform vec3 objectColor;
 uniform vec3 camPos;
 
+uniform sampler2D u_Texture;
+
 uniform Material material;
+
+uniform int hasTexture;
+
 
 uniform DirLight dirLight;
 uniform PointLight pointLights[NR_POINT_LIGHTS];
@@ -73,6 +78,9 @@ void main()
     vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(camPos - FragPos);
     vec3 result;
+
+    vec4 tex = vec4(1.0f);
+
     // phase 1: directional lighting
     result = CalcDirectionalLight(dirLight, norm, viewDir);
     // phase 2: point lights
@@ -87,7 +95,14 @@ void main()
 		FragColor.xyz = vec3(1.f, 0.f, 1.f);
 	}
 
-    FragColor = vec4(result, 1.0);
+    // texture
+    if(hasTexture == 1)
+    {
+        tex = texture(u_Texture, texCoord);
+    }
+
+    FragColor = tex * vec4(result, 1.0);
+    //FragColor = vec4(result, 1.0);
 }
 
 vec3 CalcDirectionalLight(DirLight light, vec3 normal, vec3 viewDirection)

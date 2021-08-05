@@ -16,6 +16,8 @@ set(HEADER_FILES
 	"../common/Texture.h"
 	"../common/Shader.h"
 	"../common/VertexArray.h"
+	"../common/Framebuffer.h"
+	"../common/Renderbuffer.h"
 	"../common/Cube.h"
 	"../common/CubeMap.h"
 	"../common/Mesh.h"
@@ -50,6 +52,8 @@ set(SOURCE_FILES
 	"../common/Mesh.cpp"
 	"../common/Shader.cpp"
 	"../common/VertexArray.cpp"
+	"../common/Framebuffer.cpp"
+	"../common/Renderbuffer.cpp"
 	"../common/Camera.cpp"
 	"../common/Model.cpp"
 	)
