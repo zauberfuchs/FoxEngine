@@ -21,22 +21,40 @@ GLuint Framebuffer::getColorTextureID()
 	return m_ColorTextureID;
 }
 
+GLuint Framebuffer::getID()
+{
+	return m_ID;
+}
+
 void Framebuffer::Unbind() const
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Framebuffer::createColorTexture()
+void Framebuffer::createColorTexture(bool isMultisampled)
 {
 	Bind();
-	glGenTextures(1, &m_ColorTextureID);
-	glBindTexture(GL_TEXTURE_2D, m_ColorTextureID);
+	if (isMultisampled) {
+		glGenTextures(1, &m_ColorTextureID);
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_ColorTextureID);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_Width, m_Height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, sampleSize, GL_RGB, m_Width, m_Height, GL_TRUE);
+		//glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		//glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, m_ColorTextureID, 0);
+	}
+	else 
+	{
+		glGenTextures(1, &m_ColorTextureID);
+		glBindTexture(GL_TEXTURE_2D, m_ColorTextureID);
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ColorTextureID, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_Width, m_Height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ColorTextureID, 0);
+	}
 }
 
 void Framebuffer::createDepthView()
@@ -51,3 +69,8 @@ void Framebuffer::createDepthView()
 {
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo_ID);
 }
+
+	void Framebuffer::setSampleSize(unsigned int samples)
+	{
+		sampleSize = samples;
+	}

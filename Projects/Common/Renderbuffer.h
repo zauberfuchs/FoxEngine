@@ -9,6 +9,7 @@ class Renderbuffer
 {
 private:
 	GLuint m_ID;
+	int sampleSize = 1;
 public:
 	Renderbuffer(int width, int height);
 	~Renderbuffer();
@@ -16,5 +17,6 @@ public:
 	void Bind() const;
 	void Unbind() const;
 	GLuint getID() const;
+	void setSampleSize(int samples);
 };
 #endif

@@ -4,10 +4,16 @@ out vec4 FragColor;
   
 in vec2 TexCoords;
 
-uniform sampler2D screenTexture;
+uniform int sampleSize;
+uniform sampler2DMS screenTexture;
 
 void main()
 { 
-    FragColor = vec4(vec3(texture(screenTexture, TexCoords))*clamp(sinh(0.5f),0.0f,0.2f), 1.0);
-    //FragColor = vec4(vec3(1.0 - texture(screenTexture, TexCoords))*sinh(0.9f), 1.0);
+    vec4 colorSample;
+    ivec2 texturePosition = ivec2(gl_FragCoord.x, gl_FragCoord.y);
+    for(int i = 0; i < sampleSize; i++)
+    {
+        colorSample += texelFetch(screenTexture, texturePosition, i);
+    }
+    FragColor = colorSample / sampleSize;
 }

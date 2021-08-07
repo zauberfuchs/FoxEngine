@@ -30,4 +30,5 @@ void main()
 	texCoord = vTex;
 
 	gl_Position = projection * view * vec4(FragPos, 1.0);
+	//gl_PointSize = gl_Position.z;  
 }

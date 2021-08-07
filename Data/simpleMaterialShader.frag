@@ -108,11 +108,12 @@ void main()
 vec3 CalcDirectionalLight(DirLight light, vec3 normal, vec3 viewDirection)
 {
     vec3 lightDir = normalize(-light.direction);
+    vec3 halfwayDir = normalize(lightDir + viewDirection);
     // diffuse shading
     float diff = max(dot(normal, lightDir), 0.0);
     // specular shading
     vec3 reflectionDirection = reflect(-lightDir, normal);
-    float specAmount = pow(max(dot(viewDirection, reflectionDirection), 0.0f), material.shininess);
+    float specAmount = pow(max(dot(normal, halfwayDir), 0.0f), material.shininess);
     // combine results
     vec3 ambient  = light.ambient;
     vec3 diffuse  = light.diffuse  * diff;
@@ -132,11 +133,13 @@ vec3 CalcDirectionalLight(DirLight light, vec3 normal, vec3 viewDirection)
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDirection)
 {
     vec3 lightDir = normalize(light.position - fragPos);
+    vec3 halfwayDir = normalize(lightDir + viewDirection);
     // diffuse shading
     float diff = max(dot(normal, lightDir), 0.0);
     // specular shading
     vec3 reflectionDirection = reflect(-lightDir, normal);
-    float specAmount = pow(max(dot(viewDirection, reflectionDirection), 0.0f), material.shininess);
+    //float specAmount = pow(max(dot(viewDirection, reflectionDirection), 0.0f), material.shininess);
+    float specAmount = pow(max(dot(normal, halfwayDir), 0.0f), material.shininess);
     // attenuation
     float distance    = length(light.position - fragPos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + 

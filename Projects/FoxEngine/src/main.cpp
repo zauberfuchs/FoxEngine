@@ -5,7 +5,7 @@
 #include "Mesh.h"
 #include "Square.h"
 #include "Cube.h"
-#include "CubeMap.h"+
+#include "CubeMap.h"
 #include "Framebuffer.h"
 #include "Renderbuffer.h"
 
@@ -13,6 +13,9 @@
 #include "utils.h"
 
 using namespace std;
+
+
+
 
 int main() {
 	GLFWwindow* window;
@@ -24,13 +27,13 @@ int main() {
 		cout << "Initalisierung von GLFW3 fehlgeschlagen." << endl;
 		return -1;
 	}
-
+	glEnable(GL_MULTISAMPLE);
 	// Tell GLFW what version of OpenGL we are using 
 	// In this case we are using OpenGL 3.2
 	// -------------------------------------------
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-
+	glfwWindowHint(GLFW_SAMPLES, 100);
 	// Window initialization
 	window = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, "OpenGL Tutorial", NULL, NULL);
 	if (!window) {
@@ -83,12 +86,17 @@ int main() {
 	///////////////////////////////////////////////////////////////////////////////
 
 	Framebuffer fbo(WIN_WIDTH, WIN_HEIGHT);
-	fbo.createColorTexture();
+	fbo.setSampleSize(16);
+	fbo.createColorTexture(true);
 	Renderbuffer rbo(WIN_WIDTH, WIN_HEIGHT);
 	fbo.attachRenderBuffer(rbo.getID());
+	
+	Framebuffer intermediateFBO(WIN_WIDTH, WIN_HEIGHT);
+	intermediateFBO.createColorTexture(false);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 	fbo.Unbind();
+
 
 	///////////////////////////////////////////////////////////////////////////////
 	// Setup Shader
@@ -145,10 +153,7 @@ int main() {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init(glsl_version);
 
-	glm::vec3 translationA(0, 0, 0);
-	glm::vec3 translationB(0, 0, 0);
-	glm::vec3 scaleA(1, 1, 1);
-	glm::vec4 clear_color = glm::vec4(0.45f, 0.55f, 0.60f, 1.00f);
+	
 
 	// initialize light source
 	// -----------------------
@@ -191,6 +196,7 @@ int main() {
 	quad.addLightSource(cubeLight);
 	secondQuad.addLightSource(cubeLight);
 	ground.addLightSource(cubeLight);
+
 	// main Rendering loop
 	// -------------------
 	while (!glfwWindowShouldClose(window)) {
@@ -201,7 +207,7 @@ int main() {
 		// Specify the viewport of OpenGL in the Window
 		// In this case the viewport goes from x = 0, y = 0, to x = 800, y = 800
 		glViewport(0, 0, width, height);
-
+		glEnable(GL_PROGRAM_POINT_SIZE);
 		glEnable(GL_DEPTH_TEST);
 
 		glEnable(GL_CULL_FACE);
@@ -241,6 +247,25 @@ int main() {
 		wcs = glm::mat4(1.0f);
 
 		cubeLight->position = glm::vec3(1.2f, 1.0f, 2.0f);
+		{
+			sun->translate(wcs, glm::vec3(0.0f, 8.0f, 0.0f));
+			sun->rotate(sun->getModelMatrix(), glm::vec3(0.0f, glfwGetTime() * 25, 0.0f));
+			sun->setColor(glm::vec3(0.9f, 0.6f, 0.0f));
+
+			// draw the mesh
+			// -------------
+			glStencilFunc(GL_ALWAYS, 1, 0xFF);
+			glStencilMask(0xFF);
+			sun->Draw(simpleMaterialShader, camera);
+			glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+			glStencilMask(0x00);
+			sun->scale(sun->getModelMatrix(), glm::vec3(1.03f));
+			sun->Draw(simpleColorShader, camera);
+			glStencilMask(0xFF);
+			glStencilFunc(GL_ALWAYS, 1, 0xFF);
+			glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+			glEnable(GL_DEPTH_TEST);
+		}
 		
 		// light source
 		// ------------
@@ -307,8 +332,7 @@ int main() {
 			// -------------
 			mercury->Draw(simpleMaterialShader, camera);
 		}
-
-
+		
 		// first cube
 		// ----------
 		{
@@ -362,7 +386,7 @@ int main() {
 			// -------------
 			secondQuad.Draw(simpleMaterialShader, camera);
 		}
-
+	
 		// ground
 		// ------
 		{
@@ -374,65 +398,25 @@ int main() {
 			ground.setColor(glm::vec3(1.0f, 1.0f, 1.0f));
 
 			ground.setMaterial(m);
+
 			// draw the mesh
 			// -------------
 			ground.Draw(simpleMaterialShader, camera);
 		}
-
-	
-
-		// imgui
-		// -----
-		{
-			// Create a window called "Hello, world!" and append into it.
-			ImGui::Begin("Cube Controll");
-
-			// Edit 3 floats representing a color
-			ImGui::ColorEdit3("clear color", (float*)&clear_color); 
-			// edit 3 floats to represent translation vector
-			ImGui::SliderFloat3("Translation cube", &translationA.x, -1.0f, 1.0f);
-			ImGui::SliderFloat3("Translation light", &translationB.x, -15.0f, 15.0f);
-			ImGui::SliderFloat3("Scale", &scaleA.x, -15.0f, 15.0f);
-
-			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-			ImGui::Text("Lightpos.X =%.1f // Lightpos.Y =%.1f // Lightpos.Z =%.1f", cubeLight->position.x, cubeLight->position.y, cubeLight->position.z);
-			ImGui::End();
-		}
+		
 		{
 			cubeMap.Draw(skyboxShader, camera);
 		}
 
-		{
-			sun->translate(wcs, glm::vec3(0.0f, 8.0f, 0.0f));
-			sun->rotate(sun->getModelMatrix(), glm::vec3(0.0f, glfwGetTime() * 25, 0.0f));
-			sun->setColor(glm::vec3(0.9f, 0.6f, 0.0f));
-			//sun->scale(sun->getModelMatrix(), glm::vec3(2.0f));
-			// draw the mesh
-			// -------------
-
-			glStencilFunc(GL_ALWAYS, 1, 0xFF);
-			glStencilMask(0xFF);
-			sun->Draw(simpleMaterialShader, camera);
-			glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-			glStencilMask(0x00);
-			//glDisable(GL_DEPTH_TEST);
-			sun->scale(sun->getModelMatrix(), glm::vec3(1.03f));
-			sun->Draw(simpleColorShader, camera);
-			glStencilMask(0xFF);
-			glStencilFunc(GL_ALWAYS, 1, 0xFF);
-			glEnable(GL_DEPTH_TEST);
-		}
-
-
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
 		fbo.Unbind();
 		postFXShader.Bind();
+		postFXShader.SetUniform1i("sampleSize", numSamples);
 		glDisable(GL_DEPTH_TEST);
-		glBindTexture(GL_TEXTURE_2D, fbo.getColorTextureID());
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, fbo.getColorTextureID());
 		postFXSquare.Draw(postFXShader, camera);
 
+		
+		drawImGuiWindow();
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
@@ -445,4 +429,31 @@ int main() {
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	return 0;
+}
+
+void drawImGuiWindow() 
+{
+	// imgui
+	// -----
+	{
+		// Create a window called "Hello, world!" and append into it.
+		ImGui::Begin("Cube Controll");
+
+		// Edit 3 floats representing a color
+		ImGui::ColorEdit3("clear color", (float*)&clear_color);
+		// edit 3 floats to represent translation vector
+		ImGui::SliderFloat3("Translation cube", &translationA.x, -1.0f, 1.0f);
+		ImGui::SliderFloat3("Translation light", &translationB.x, -15.0f, 15.0f);
+		ImGui::SliderFloat3("Scale", &scaleA.x, -15.0f, 15.0f);
+		ImGui::RadioButton("no Antialiasing", &numSamples, 1);
+		ImGui::RadioButton("4x MSAA", &numSamples, 4);
+		ImGui::RadioButton("8x MSAA", &numSamples, 8);
+		ImGui::RadioButton("16x MSAA", &numSamples, 16);
+
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		ImGui::End();
+	}
+
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }

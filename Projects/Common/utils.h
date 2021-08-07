@@ -11,7 +11,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
-
+using namespace std;
 
 const char* glsl_version = "#version 330 core";
 
@@ -28,10 +28,15 @@ double lastFrame = 0.0f;
 Camera camera(glm::vec3(0.0f, 2.0f, 9.0f));
 
 
+glm::vec3 translationA(0, 0, 0);
+glm::vec3 translationB(0, 0, 0);
+glm::vec3 scaleA(1, 1, 1);
+glm::vec4 clear_color = glm::vec4(0.45f, 0.55f, 0.60f, 1.00f);
+int numSamples = 1;
+
 bool firstMouse = true;
 bool mouseButtonPressed = false;
-
-
+void drawImGuiWindow();
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------

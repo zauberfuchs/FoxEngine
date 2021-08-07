@@ -15,15 +15,18 @@ private:
 
 	unsigned int m_Width;
 	unsigned int m_Height;
+	unsigned int sampleSize = 1;
 public:
 	Framebuffer(const int& width, const int& height);
 	~Framebuffer();
 
 	void Bind() const;
 	void Unbind() const;
-	void createColorTexture();
+	void createColorTexture(bool isMultisampled);
 	void createDepthView();
 	GLuint getColorTextureID();
+	GLuint getID();
 	void attachRenderBuffer(GLuint rbo_ID);
+	void setSampleSize(unsigned int samples);
 };
 #endif
