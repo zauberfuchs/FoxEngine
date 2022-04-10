@@ -15,7 +15,7 @@
 using namespace std;
 
 
-
+unordered_map<string, Shader> shaders;
 
 int main() {
 	GLFWwindow* window;
@@ -90,9 +90,12 @@ int main() {
 	fbo.createColorTexture(true);
 	Renderbuffer rbo(WIN_WIDTH, WIN_HEIGHT);
 	fbo.attachRenderBuffer(rbo.getID());
-	
+
 	Framebuffer intermediateFBO(WIN_WIDTH, WIN_HEIGHT);
 	intermediateFBO.createColorTexture(false);
+
+	Framebuffer depthMapFBO(WIN_WIDTH, WIN_HEIGHT);
+
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 	fbo.Unbind();
@@ -157,21 +160,21 @@ int main() {
 
 	// initialize light source
 	// -----------------------
-	shared_ptr<Light> cubeLight = make_unique<Light>();
+	shared_ptr<Light> cubeLight = make_shared<Light>();
 	cubeLight->type = POINT_LIGHT;
 	cubeLight->position = glm::vec3(1.2f, 1.0f, 2.0f);
 	cubeLight->constant = 1.0f;
 	cubeLight->linear = 0.9f;
 	cubeLight->quadratic = 0.032f;
 
-	shared_ptr<Light> sunLight = make_unique<Light>();
+	shared_ptr<Light> sunLight = make_shared<Light>();
 	sunLight->type = POINT_LIGHT;
 	sunLight->position = glm::vec3(0.0f, 8.0f, 0.0f);
 	sunLight->constant = 1.0f;
 	sunLight->linear = 0.001f;
 	sunLight->quadratic = 0.0001f;
 
-	shared_ptr<Light> globalLight = make_unique<Light>();
+	shared_ptr<Light> globalLight = make_shared<Light>();
 	globalLight->type = DIRECTIONAL_LIGHT;
 	globalLight->direction = glm::vec3(0.0f, -1.0f, 0.0f);
 
@@ -217,6 +220,7 @@ int main() {
 		glEnable(GL_STENCIL_TEST);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 		glStencilMask(0x00);
+		
 
 		// per-frame time logic
 		// --------------------
@@ -407,7 +411,7 @@ int main() {
 		{
 			cubeMap.Draw(skyboxShader, camera);
 		}
-
+		
 		fbo.Unbind();
 		postFXShader.Bind();
 		postFXShader.SetUniform1i("sampleSize", numSamples);

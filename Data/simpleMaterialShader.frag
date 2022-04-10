@@ -100,8 +100,10 @@ void main()
     {
         tex = texture(u_Texture, texCoord);
     }
-
-    FragColor = tex * vec4(result, 1.0);
+    float gamma = 2.2;
+     FragColor = tex * vec4(result, 1.0);
+  //  FragColor = tex * vec4(pow(result.rgb,vec3(1.0/gamma)), 1.0);
+   // FragColor.rgb = pow(FragColor.rgb, vec3(1.0/gamma));
     //FragColor = vec4(result, 1.0);
 }
 

@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH "CMAKE-PRESETS" "7" "Jul 08, 2021" "3.21.0" "CMake"
+.TH "CMAKE-PRESETS" "7" "Jan 25, 2022" "3.22.2" "CMake"
 .SH NAME
 cmake-presets \- CMakePresets.json
 .
@@ -59,7 +59,7 @@ The files are a JSON document with an object as the root:
   "version": 3,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 20,
+    "minor": 21,
     "patch": 0
   },
   "configurePresets": [
@@ -349,8 +349,9 @@ before invoking CMake.
 An optional string representing the path to the toolchain file.
 This field supports \fI\%macro expansion\fP\&. If a relative path is specified,
 it is calculated relative to the build directory, and if not found,
-relative to the source directory. Takes precedence over any \fICMAKE_TOOLCHAIN_FILE\fP
-value. This is allowed in preset files specifying version \fB3\fP or above.
+relative to the source directory. This field takes precedence over any
+\fBCMAKE_TOOLCHAIN_FILE\fP value. It is allowed in preset files
+specifying version \fB3\fP or above.
 .UNINDENT
 .UNINDENT
 .sp

@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH "CMAKE-GENERATORS" "7" "Jul 08, 2021" "3.21.0" "CMake"
+.TH "CMAKE-GENERATORS" "7" "Jan 25, 2022" "3.22.2" "CMake"
 .SH NAME
 cmake-generators \- CMake Generators Reference
 .
@@ -457,7 +457,18 @@ Specify target platform matching a Windows CE SDK name.
 .UNINDENT
 .SS Visual Studio 10 2010
 .sp
-Generates Visual Studio 10 (VS 2010) project files.
+Deprecated.  Generates Visual Studio 10 (VS 2010) project files.
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+This generator is deprecated and will be removed in a future version
+of CMake.  It will still be possible to build with VS 10 2010 tools
+using the \fBVisual Studio 11 2012\fP (or above) generator
+with \fBCMAKE_GENERATOR_TOOLSET\fP set to \fBv100\fP, or by
+using the \fBNMake Makefiles\fP generator.
+.UNINDENT
+.UNINDENT
 .sp
 For compatibility with CMake versions prior to 3.0, one may specify this
 generator using the name \fBVisual Studio 10\fP without the year component.
@@ -688,20 +699,21 @@ Intel compiler integration).  Other types of projects (JavaScript,
 Powershell, Python, etc.) are not supported.
 .SS Instance Selection
 .sp
-New in version 3.9: VS 2017 supports multiple installations on the same machine.
+New in version 3.11.
+
+.sp
+VS 2017 supports multiple installations on the same machine.
 The \fBCMAKE_GENERATOR_INSTANCE\fP variable may be set as a
 cache entry containing the absolute path to a Visual Studio instance.
 If the value is not specified explicitly by the user or a toolchain file,
 CMake queries the Visual Studio Installer to locate VS instances, chooses
 one, and sets the variable as a cache entry to hold the value persistently.
-
 .sp
-New in version 3.11: When CMake first chooses an instance, if the \fBVS150COMNTOOLS\fP environment
+When CMake first chooses an instance, if the \fBVS150COMNTOOLS\fP environment
 variable is set and points to the \fBCommon7/Tools\fP directory within
 one of the instances, that instance will be used.  Otherwise, if more
 than one instance is installed we do not define which one is chosen
 by default.
-
 .SS Platform Selection
 .sp
 The default target platform name (architecture) is \fBWin32\fP\&.
@@ -811,14 +823,6 @@ New in version 3.21.
 
 .sp
 Generates Visual Studio 17 (VS 2022) project files.
-.sp
-\fBWARNING:\fP
-.INDENT 0.0
-.INDENT 3.5
-This is experimental and based on "Visual Studio 2022 Preview 1.1".
-As of this version of CMake, VS 2022 has not been released.
-.UNINDENT
-.UNINDENT
 .SS Project Types
 .sp
 Only Visual C++ and C# projects may be generated (and Fortran with
@@ -858,8 +862,8 @@ name (architecture).  For example:
 .UNINDENT
 .SS Toolset Selection
 .sp
-The \fBv142\fP toolset that comes with VS 17 2022 Preview 1.1 is selected by
-default.  The \fBCMAKE_GENERATOR_TOOLSET\fP option may be set, perhaps
+The \fBv143\fP toolset that comes with VS 17 2022 is selected by default.
+The \fBCMAKE_GENERATOR_TOOLSET\fP option may be set, perhaps
 via the \fBcmake(1)\fP \fB\-T\fP option, to specify another toolset.
 .sp
 For each toolset that comes with this version of Visual Studio, there are
@@ -978,7 +982,7 @@ The following properties are available:
 \fBNOTE:\fP
 .INDENT 0.0
 .INDENT 3.5
-This generator is deemed experimental as of CMake 3.21.0\-rc3
+This generator is deemed experimental as of CMake 3.22.2
 and is still a work in progress.  Future versions of CMake
 may make breaking changes as the generator matures.
 .UNINDENT

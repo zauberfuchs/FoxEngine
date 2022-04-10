@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH "CTEST" "1" "Jul 08, 2021" "3.21.0" "CMake"
+.TH "CTEST" "1" "Jan 25, 2022" "3.22.2" "CMake"
 .SH NAME
 ctest \- CTest Command-Line Reference
 .
@@ -227,8 +227,10 @@ This option tells CTest to write all its output to a \fB<file>\fP log file.
 .B \fB\-\-output\-junit <file>\fP
 Write test results in JUnit format.
 .sp
-This option tells CTest to write test results to a \fB<file>\fP JUnit XML file.
-If \fB<file>\fP already exists it will be overwritten.
+This option tells CTest to write test results to \fB<file>\fP in JUnit XML
+format. If \fB<file>\fP already exists, it will be overwritten. If using the
+\fB\-S\fP option to run a dashboard script, use the \fBOUTPUT_JUNIT\fP keyword
+with the \fBctest_test()\fP command instead.
 .TP
 .B \fB\-N,\-\-show\-only[=<format>]\fP
 Disable actual execution of tests.
@@ -695,6 +697,10 @@ regular expression that matches either of them, like \fB\-L "tue|wed"\fP\&.
 CTest prints timing summary information for each \fBLABEL\fP and subproject
 associated with the tests run. The label time summary will not include labels
 that are mapped to subprojects.
+.sp
+New in version 3.22: Labels added dynamically during test execution are also reported in the
+timing summary.  See Additional Labels\&.
+
 .sp
 When the \fBPROCESSORS\fP test property is set, CTest will display a
 weighted test timing result in label and subproject summaries. The time is

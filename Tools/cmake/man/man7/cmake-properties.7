@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH "CMAKE-PROPERTIES" "7" "Jul 08, 2021" "3.21.0" "CMake"
+.TH "CMAKE-PROPERTIES" "7" "Jan 25, 2022" "3.22.2" "CMake"
 .SH NAME
 cmake-properties \- CMake Properties Reference
 .
@@ -129,7 +129,11 @@ The features listed here may be used with the \fBtarget_compile_features()\fP
 command.  See the \fBcmake\-compile\-features(7)\fP manual for information on
 compile features and a list of supported compilers.
 .sp
-The features known to this version of CMake are:
+The features known to this version of CMake are listed below.
+.SS High level meta features indicating C standard support
+.sp
+New in version 3.8.
+
 .INDENT 0.0
 .TP
 .B \fBc_std_90\fP
@@ -142,10 +146,19 @@ Compiler mode is at least C 99.
 Compiler mode is at least C 11.
 .TP
 .B \fBc_std_17\fP
+New in version 3.21.
+
+.sp
 Compiler mode is at least C 17.
 .TP
 .B \fBc_std_23\fP
+New in version 3.21.
+
+.sp
 Compiler mode is at least C 23.
+.UNINDENT
+.SS Low level individual compile features
+.INDENT 0.0
 .TP
 .B \fBc_function_prototypes\fP
 Function prototypes, as defined in \fBISO/IEC 9899:1990\fP\&.
@@ -193,6 +206,9 @@ Compiler mode is at least CUDA/C++ 17.
 Compiler mode is at least CUDA/C++ 20.
 .TP
 .B \fBcuda_std_23\fP
+New in version 3.20.
+
+.sp
 Compiler mode is at least CUDA/C++ 23.
 .UNINDENT
 .SS CMAKE_CXX_KNOWN_FEATURES
@@ -213,6 +229,9 @@ compile features and a list of supported compilers.
 The features known to this version of CMake are listed below.
 .SS High level meta features indicating C++ standard support
 .sp
+New in version 3.8.
+
+.sp
 The following meta features indicate general support for the associated
 language standard.  It reflects the language support claimed by the compiler,
 but it does not necessarily imply complete conformance to that standard.
@@ -231,9 +250,15 @@ Compiler mode is at least C++ 14.
 Compiler mode is at least C++ 17.
 .TP
 .B \fBcxx_std_20\fP
+New in version 3.12.
+
+.sp
 Compiler mode is at least C++ 20.
 .TP
 .B \fBcxx_std_23\fP
+New in version 3.20.
+
+.sp
 Compiler mode is at least C++ 23.
 .UNINDENT
 .SS Low level individual compile features
@@ -1774,9 +1799,9 @@ it must be added to \fI\%AUTOGEN_TARGET_DEPENDS\fP\&.
 Should the target be processed with auto\-moc (for Qt projects).
 .sp
 \fI\%AUTOMOC\fP is a boolean specifying whether CMake will handle the Qt
-\fBmoc\fP preprocessor automatically, i.e.  without having to use the
-\fBQT4_WRAP_CPP()\fP or \fBQT5_WRAP_CPP()\fP macro.
-Currently Qt4 and Qt5 are supported.
+\fBmoc\fP preprocessor automatically, i.e.  without having to use commands like
+\fBQT4_WRAP_CPP()\fP, \fBQT5_WRAP_CPP()\fP, etc.
+Currently, Qt versions 4 to 6 are supported.
 .sp
 This property is initialized by the value of the \fBCMAKE_AUTOMOC\fP
 variable if it is set when a target is created.
@@ -1936,10 +1961,15 @@ which is added to the target\(aqs sources.
 .sp
 \fI\%AUTOMOC\fP enabled targets need to know the Qt major and minor
 version they\(aqre working with.  The major version usually is provided by the
-\fBINTERFACE_QT_MAJOR_VERSION\fP property of the \fBQt[45]Core\fP library,
+\fBINTERFACE_QT_MAJOR_VERSION\fP property of the \fBQt[456]Core\fP library,
 that the target links to.  To find the minor version, CMake builds a list of
 available Qt versions from
 .INDENT 0.0
+.IP \(bu 2
+\fBQt6Core_VERSION_MAJOR\fP and \fBQt6Core_VERSION_MINOR\fP variables
+(usually set by \fBfind_package(Qt6...)\fP)
+.IP \(bu 2
+\fBQt6Core_VERSION_MAJOR\fP and \fBQt6Core_VERSION_MINOR\fP directory properties
 .IP \(bu 2
 \fBQt5Core_VERSION_MAJOR\fP and \fBQt5Core_VERSION_MINOR\fP variables
 (usually set by \fBfind_package(Qt5...)\fP)
@@ -1960,13 +1990,13 @@ version was found, an error is generated.
 If  \fBINTERFACE_QT_MAJOR_VERSION\fP is not a valid number, the first
 entry in the list is taken.
 .sp
-A \fBfind_package(Qt[45]...)\fP call sets the \fBQT/Qt5Core_VERSION_MAJOR/MINOR\fP
+A \fBfind_package(Qt[456]...)\fP call sets the \fBQT/Qt[56]Core_VERSION_MAJOR/MINOR\fP
 variables.  If the call is in a different context than the
 \fBadd_executable()\fP or \fBadd_library()\fP call, e.g. in a function,
 then the version variables might not be available to the \fI\%AUTOMOC\fP
 enabled target.
 In that case the version variables can be forwarded from the
-\fBfind_package(Qt[45]...)\fP calling context to the \fBadd_executable()\fP
+\fBfind_package(Qt[456]...)\fP calling context to the \fBadd_executable()\fP
 or \fBadd_library()\fP calling context as directory properties.
 The following Qt5 example demonstrates the procedure.
 .INDENT 0.0
@@ -2350,8 +2380,8 @@ Should the target be processed with auto\-rcc (for Qt projects).
 .sp
 \fI\%AUTORCC\fP is a boolean specifying whether CMake will handle
 the Qt \fBrcc\fP code generator automatically, i.e. without having to use
-the \fBQT4_ADD_RESOURCES()\fP or \fBQT5_ADD_RESOURCES()\fP
-macro.  Currently Qt4 and Qt5 are supported.
+commands like \fBQT4_ADD_RESOURCES()\fP, \fBQT5_ADD_RESOURCES()\fP,
+etc.  Currently, Qt versions 4 to 6 are supported.
 .sp
 When this property is \fBON\fP, CMake will handle \fB\&.qrc\fP files added
 as target sources at build time and invoke \fBrcc\fP accordingly.
@@ -2456,8 +2486,8 @@ Should the target be processed with auto\-uic (for Qt projects).
 .sp
 \fI\%AUTOUIC\fP is a boolean specifying whether CMake will handle
 the Qt \fBuic\fP code generator automatically, i.e. without having to use
-the \fBQT4_WRAP_UI()\fP or \fBQT5_WRAP_UI()\fP macro. Currently
-Qt4 and Qt5 are supported.
+commands like \fBQT4_WRAP_UI()\fP, \fBQT5_WRAP_UI()\fP, etc.
+Currently, Qt versions 4 to 6 are supported.
 .sp
 This property is initialized by the value of the \fBCMAKE_AUTOUIC\fP
 variable if it is set when a target is created.
@@ -2716,8 +2746,10 @@ See the \fBcmake\-compile\-features(7)\fP manual for information on
 compile features and a list of supported compilers.
 .sp
 This property is initialized by the value of
-the \fBCMAKE_C_EXTENSIONS\fP variable if it is set when a target
-is created.
+the \fBCMAKE_C_EXTENSIONS\fP variable if set when a target is created and
+otherwise by the value of
+\fBCMAKE_C_EXTENSIONS_DEFAULT\fP (see
+\fBCMP0128\fP).
 .SS C_STANDARD
 .sp
 New in version 3.1.
@@ -3203,8 +3235,10 @@ See the \fBcmake\-compile\-features(7)\fP manual for information on
 compile features and a list of supported compilers.
 .sp
 This property is initialized by the value of
-the \fBCMAKE_CUDA_EXTENSIONS\fP variable if it is set when a target
-is created.
+the \fBCMAKE_CUDA_EXTENSIONS\fP variable if set when a target is created
+and otherwise by the value of
+\fBCMAKE_CUDA_EXTENSIONS_DEFAULT\fP
+(see \fBCMP0128\fP).
 .SS CUDA_PTX_COMPILATION
 .sp
 New in version 3.9.
@@ -3335,22 +3369,28 @@ Supported values are:
 .INDENT 0.0
 .TP
 .B \fB98\fP
-CUDA C++98
+CUDA C++98. Note that this maps to the same as \fB03\fP internally.
+.TP
+.B \fB03\fP
+CUDA C++03
 .TP
 .B \fB11\fP
 CUDA C++11
 .TP
 .B \fB14\fP
-CUDA C++14
+CUDA C++14. While CMake 3.8 and later \fIrecognize\fP \fB14\fP as a valid value,
+CMake 3.9 was the first version to include support for any compiler.
 .TP
 .B \fB17\fP
-CUDA C++17
+CUDA C++17. While CMake 3.8 and later \fIrecognize\fP \fB17\fP as a valid value,
+CMake 3.18 was the first version to include support for any compiler.
 .TP
 .B \fB20\fP
 New in version 3.12.
 
 .sp
-CUDA C++20
+CUDA C++20. While CMake 3.12 and later \fIrecognize\fP \fB20\fP as a valid value,
+CMake 3.18 was the first version to include support for any compiler.
 .TP
 .B \fB23\fP
 New in version 3.20.
@@ -3375,7 +3415,7 @@ set_property(TARGET tgt PROPERTY CUDA_STANDARD 11)
 .sp
 with a compiler which does not support \fB\-std=gnu++11\fP or an equivalent
 flag will not result in an error or warning, but will instead add the
-\fB\-std=gnu++98\fP flag if supported.  This "decay" behavior may be controlled
+\fB\-std=gnu++03\fP flag if supported.  This "decay" behavior may be controlled
 with the \fBCUDA_STANDARD_REQUIRED\fP target property.
 Additionally, the \fBCUDA_EXTENSIONS\fP target property may be used to
 control whether compiler\-specific extensions are enabled on a per\-target basis.
@@ -3423,8 +3463,10 @@ See the \fBcmake\-compile\-features(7)\fP manual for information on
 compile features and a list of supported compilers.
 .sp
 This property is initialized by the value of
-the \fBCMAKE_CXX_EXTENSIONS\fP variable if it is set when a target
-is created.
+the \fBCMAKE_CXX_EXTENSIONS\fP variable if set when a target is created
+and otherwise by the value of
+\fBCMAKE_CXX_EXTENSIONS_DEFAULT\fP (see
+\fBCMP0128\fP).
 .SS CXX_STANDARD
 .sp
 New in version 3.1.
@@ -3787,6 +3829,22 @@ separating folder levels.
 .sp
 This property is initialized by the value of the variable
 \fBCMAKE_FOLDER\fP if it is set when a target is created.
+.SS Fortran_BUILDING_INSTRINSIC_MODULES
+.sp
+New in version 3.22.
+
+.sp
+Instructs the CMake Fortran preprocessor that the target is building
+Fortran intrinsics for building a Fortran compiler.
+.sp
+This property is off by default and should be turned only on projects
+that build a Fortran compiler. It should not be turned on for projects
+that use a Fortran compiler.
+.sp
+Turning this property on will correctly add dependencies for building
+Fortran intrinsic modules whereas turning the property off will ignore
+Fortran intrinsic modules in the dependency graph as they are supplied
+by the compiler itself.
 .SS Fortran_FORMAT
 .sp
 Set to \fBFIXED\fP or \fBFREE\fP to indicate the Fortran source layout.
@@ -4024,6 +4082,102 @@ set_property(TARGET tgt PROPERTY HIP_ARCHITECTURES gfx801 gfx900)
 .UNINDENT
 .sp
 Generates code for both \fBgfx801\fP and \fBgfx900\fP\&.
+.SS HIP_EXTENSIONS
+.sp
+New in version 3.21.
+
+.sp
+Boolean specifying whether compiler specific extensions are requested.
+.sp
+This property specifies whether compiler specific extensions should be
+used.  For some compilers, this results in adding a flag such
+as \fB\-std=gnu++11\fP instead of \fB\-std=c++11\fP to the compile line.  This
+property is \fBON\fP by default. The basic HIP/C++ standard level is
+controlled by the \fBHIP_STANDARD\fP target property.
+.sp
+See the \fBcmake\-compile\-features(7)\fP manual for information on
+compile features and a list of supported compilers.
+.sp
+This property is initialized by the value of
+the \fBCMAKE_HIP_EXTENSIONS\fP variable if set when a target is created
+and otherwise by the value of
+\fBCMAKE_HIP_EXTENSIONS_DEFAULT\fP (see
+\fBCMP0128\fP).
+.SS HIP_STANDARD
+.sp
+New in version 3.21.
+
+.sp
+The HIP/C++ standard requested to build this target.
+.sp
+Supported values are:
+.INDENT 0.0
+.TP
+.B \fB98\fP
+HIP C++98
+.TP
+.B \fB11\fP
+HIP C++11
+.TP
+.B \fB14\fP
+HIP C++14
+.TP
+.B \fB17\fP
+HIP C++17
+.TP
+.B \fB20\fP
+HIP C++20
+.TP
+.B \fB23\fP
+HIP C++23
+.UNINDENT
+.sp
+If the value requested does not result in a compile flag being added for
+the compiler in use, a previous standard flag will be added instead.  This
+means that using:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+set_property(TARGET tgt PROPERTY HIP_STANDARD 11)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+with a compiler which does not support \fB\-std=gnu++11\fP or an equivalent
+flag will not result in an error or warning, but will instead add the
+\fB\-std=gnu++98\fP flag if supported.  This "decay" behavior may be controlled
+with the \fBHIP_STANDARD_REQUIRED\fP target property.
+Additionally, the \fBHIP_EXTENSIONS\fP target property may be used to
+control whether compiler\-specific extensions are enabled on a per\-target basis.
+.sp
+See the \fBcmake\-compile\-features(7)\fP manual for information on
+compile features and a list of supported compilers.
+.sp
+This property is initialized by the value of
+the \fBCMAKE_HIP_STANDARD\fP variable if it is set when a target
+is created.
+.SS HIP_STANDARD_REQUIRED
+.sp
+New in version 3.21.
+
+.sp
+Boolean describing whether the value of \fBHIP_STANDARD\fP is a requirement.
+.sp
+If this property is set to \fBON\fP, then the value of the
+\fBHIP_STANDARD\fP target property is treated as a requirement.  If this
+property is \fBOFF\fP or unset, the \fBHIP_STANDARD\fP target property is
+treated as optional and may "decay" to a previous standard if the requested is
+not available.
+.sp
+See the \fBcmake\-compile\-features(7)\fP manual for information on
+compile features and a list of supported compilers.
+.sp
+This property is initialized by the value of
+the \fBCMAKE_HIP_STANDARD_REQUIRED\fP variable if it is set when a
+target is created.
 .SS IMPLICIT_DEPENDS_INCLUDE_TRANSFORM
 .sp
 Specify \fB#include\fP line transforms for dependencies in a target.
@@ -5119,6 +5273,36 @@ and report any problems.
 This property is initialized by the value of the
 \fBCMAKE_<LANG>_CPPLINT\fP variable if it is set when a target is
 created.
+.SS <LANG>_EXTENSIONS
+.sp
+The variations are:
+.INDENT 0.0
+.IP \(bu 2
+\fBC_EXTENSIONS\fP
+.IP \(bu 2
+\fBCXX_EXTENSIONS\fP
+.IP \(bu 2
+\fBCUDA_EXTENSIONS\fP
+.IP \(bu 2
+\fBHIP_EXTENSIONS\fP
+.IP \(bu 2
+\fBOBJC_EXTENSIONS\fP
+.IP \(bu 2
+\fBOBJCXX_EXTENSIONS\fP
+.UNINDENT
+.sp
+These properties specify whether compiler\-specific extensions are requested.
+.sp
+These properties are initialized by the value of the
+\fBCMAKE_<LANG>_EXTENSIONS\fP variable if it is set when a target is
+created and otherwise by the value of
+\fBCMAKE_<LANG>_EXTENSIONS_DEFAULT\fP (see \fBCMP0128\fP).
+.sp
+For supported CMake versions see the respective pages.
+To control language standard versions see \fB<LANG>_STANDARD\fP\&.
+.sp
+See the \fBcmake\-compile\-features(7)\fP manual for information on
+compile features and a list of supported compilers.
 .SS <LANG>_INCLUDE_WHAT_YOU_USE
 .sp
 New in version 3.3.
@@ -5150,6 +5334,70 @@ arguments to the tool. This is useful for tools such as static analyzers.
 This property is initialized by the value of the
 \fBCMAKE_<LANG>_LINKER_LAUNCHER\fP variable if it is set when a target is
 created.
+.SS <LANG>_STANDARD
+.sp
+The variations are:
+.INDENT 0.0
+.IP \(bu 2
+\fBC_STANDARD\fP
+.IP \(bu 2
+\fBCXX_STANDARD\fP
+.IP \(bu 2
+\fBCUDA_STANDARD\fP
+.IP \(bu 2
+\fBHIP_STANDARD\fP
+.IP \(bu 2
+\fBOBJC_STANDARD\fP
+.IP \(bu 2
+\fBOBJCXX_STANDARD\fP
+.UNINDENT
+.sp
+These properties specify language standard versions which are requested. When a
+newer standard is specified than is supported by the compiler, then it will
+fallback to the latest supported standard. This "decay" behavior may be
+controlled with the \fB<LANG>_STANDARD_REQUIRED\fP target property.
+.sp
+These properties are initialized by the value of the
+\fBCMAKE_<LANG>_STANDARD\fP variable if it is set when a target is
+created.
+.sp
+For supported values and CMake versions see the respective pages.
+To control compiler\-specific extensions see \fB<LANG>_EXTENSIONS\fP\&.
+.sp
+See the \fBcmake\-compile\-features(7)\fP manual for information on
+compile features and a list of supported compilers.
+.SS <LANG>_STANDARD_REQUIRED
+.sp
+The variations are:
+.INDENT 0.0
+.IP \(bu 2
+\fBC_STANDARD_REQUIRED\fP
+.IP \(bu 2
+\fBCXX_STANDARD_REQUIRED\fP
+.IP \(bu 2
+\fBCUDA_STANDARD_REQUIRED\fP
+.IP \(bu 2
+\fBHIP_STANDARD_REQUIRED\fP
+.IP \(bu 2
+\fBOBJC_STANDARD_REQUIRED\fP
+.IP \(bu 2
+\fBOBJCXX_STANDARD_REQUIRED\fP
+.UNINDENT
+.sp
+These properties specify whether the value of \fB<LANG>_STANDARD\fP is a
+requirement. When \fBOFF\fP or unset, the \fB<LANG>_STANDARD\fP target
+property is treated as optional and may "decay" to a previous standard if the
+requested is not available.
+.sp
+These properties are initialized by the value of the
+\fBCMAKE_<LANG>_STANDARD_REQUIRED\fP variable if it is set when a target
+is created.
+.sp
+For supported CMake versions see the respective pages.
+To control language standard versions see \fB<LANG>_STANDARD\fP\&.
+.sp
+See the \fBcmake\-compile\-features(7)\fP manual for information on
+compile features and a list of supported compilers.
 .SS <LANG>_VISIBILITY_PRESET
 .sp
 Value for symbol visibility compile flags
@@ -5531,14 +5779,23 @@ See also \fBLINK_SEARCH_END_STATIC\fP\&.
 New in version 3.7.
 
 .sp
-This is a boolean option that when set to \fBTRUE\fP will automatically run
-\fBldd \-r \-u\fP on the target after it is linked. In addition, the linker flag
-\fB\-Wl,\-\-no\-as\-needed\fP will be passed to the target with the link command so
-that all libraries specified on the command line will be linked into the
-target. This will result in the link producing a list of libraries that
-provide no symbols used by this target but are being linked to it.
-This is only applicable to executable and shared library targets and
-will only work when ld and ldd accept the flags used.
+This is a boolean option that, when set to \fBTRUE\fP, will automatically run
+contents of variable \fBCMAKE_LINK_WHAT_YOU_USE_CHECK\fP on the target
+after it is linked. In addition, the linker flag specified by variable
+\fBCMAKE_<LANG>_LINK_WHAT_YOU_USE_FLAG\fP  will be passed to the target
+with the link command so that all libraries specified on the command line will
+be linked into the target. This will result in the link producing a list of
+libraries that provide no symbols used by this target but are being linked to
+it.
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+For now, it is only supported for \fBELF\fP platforms and is only applicable to
+executable and shared or module library targets. This property will be
+ignored for any other targets and configurations.
+.UNINDENT
+.UNINDENT
 .sp
 This property is initialized by the value of
 the \fBCMAKE_LINK_WHAT_YOU_USE\fP variable if it is set
@@ -5980,8 +6237,10 @@ See the \fBcmake\-compile\-features(7)\fP manual for information on
 compile features and a list of supported compilers.
 .sp
 This property is initialized by the value of
-the \fBCMAKE_OBJC_EXTENSIONS\fP variable if it is set when a target
-is created.
+the \fBCMAKE_OBJC_EXTENSIONS\fP variable if set when a target is created
+and otherwise by the value of
+\fBCMAKE_OBJC_EXTENSIONS_DEFAULT\fP
+(see \fBCMP0128\fP).
 .SS OBJC_STANDARD
 .sp
 New in version 3.16.
@@ -6078,8 +6337,10 @@ If the property is not set, and the project has set the \fBCXX_EXTENSIONS\fP,
 the value of \fBCXX_EXTENSIONS\fP is set for \fI\%OBJCXX_EXTENSIONS\fP\&.
 .sp
 This property is initialized by the value of
-the \fBCMAKE_OBJCXX_EXTENSIONS\fP variable if it is set when a target
-is created.
+the \fBCMAKE_OBJCXX_EXTENSIONS\fP variable if set when a target is
+created and otherwise by the value of
+\fBCMAKE_OBJCXX_EXTENSIONS_DEFAULT\fP
+(see \fBCMP0128\fP).
 .SS OBJCXX_STANDARD
 .sp
 New in version 3.16.
@@ -6827,7 +7088,7 @@ If no explicit \fBUNITY_BUILD_MODE\fP has been specified, CMake will
 default to \fBBATCH\fP\&.
 .sp
 Unity builds are not currently supported for all languages.  CMake version
-3.21.0\-rc3 supports combining \fBC\fP and \fBCXX\fP source files.  For targets that
+3.22.2 supports combining \fBC\fP and \fBCXX\fP source files.  For targets that
 mix source files from more than one language, CMake will separate the languages
 such that each generated unity source file only contains sources for a single
 language.
@@ -8386,8 +8647,60 @@ Specify environment variables that should be defined for running a test.
 .sp
 If set to a list of environment variables and values of the form
 \fBMYVAR=value\fP those environment variables will be defined while running
-the test.  The environment is restored to its previous state after the
-test is done.
+the test.  The environment changes from this property do not affect other
+tests.
+.SS ENVIRONMENT_MODIFICATION
+.sp
+New in version 3.22.
+
+.sp
+Specify environment variables that should be modified for running a test. Note
+that the operations performed by this property are performed after the
+\fBENVIRONMENT\fP property is already applied.
+.sp
+If set to a list of environment variables and values of the form
+\fBMYVAR=OP:VALUE\fP, where \fBMYVAR\fP is the case\-sensitive name of an
+environment variable to be modified. Entries are considered in the
+order specified in the property\(aqs value. The \fBOP\fP may be one of:
+.INDENT 0.0
+.INDENT 3.5
+.INDENT 0.0
+.IP \(bu 2
+\fBreset\fP: Reset to the unmodified value, ignoring all modifications to
+\fBMYVAR\fP prior to this entry. Note that this will reset the variable to
+the value set by \fBENVIRONMENT\fP, if it was set, and otherwise
+to its state from the rest of the CTest execution.
+.IP \(bu 2
+\fBset\fP: Replaces the current value of \fBMYVAR\fP with \fBVALUE\fP\&.
+.IP \(bu 2
+\fBunset\fP: Unsets the current value of \fBMYVAR\fP\&.
+.IP \(bu 2
+\fBstring_append\fP: Appends \fBVALUE\fP to the current value of \fBMYVAR\fP\&.
+.IP \(bu 2
+\fBstring_prepend\fP: Prepends \fBVALUE\fP to the current value of \fBMYVAR\fP\&.
+.IP \(bu 2
+\fBpath_list_append\fP: Appends \fBVALUE\fP to the current value of \fBMYVAR\fP
+using the host platform\(aqs path list separator (\fB;\fP on Windows and \fB:\fP
+elsewhere).
+.IP \(bu 2
+\fBpath_list_prepend\fP: Prepends \fBVALUE\fP to the current value of
+\fBMYVAR\fP using the host platform\(aqs path list separator (\fB;\fP on Windows
+and \fB:\fP elsewhere).
+.IP \(bu 2
+\fBcmake_list_append\fP: Appends \fBVALUE\fP to the current value of \fBMYVAR\fP
+using \fB;\fP as the separator.
+.IP \(bu 2
+\fBcmake_list_prepend\fP: Prepends \fBVALUE\fP to the current value of
+\fBMYVAR\fP using \fB;\fP as the separator.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+Unrecognized \fBOP\fP values will result in the test failing before it is
+executed. This is so that future operations may be added without changing
+valid behavior of existing tests.
+.sp
+The environment changes from this property do not affect other tests.
 .SS FAIL_REGULAR_EXPRESSION
 .sp
 If the output matches this regular expression the test will fail,
@@ -8635,9 +8948,13 @@ See \fBFIXTURES_REQUIRED\fP for a more complete discussion of how to use
 test fixtures.
 .SS LABELS
 .sp
-Specify a list of text labels associated with a test.
+Specify a list of text labels associated with a test.  The labels are
+reported in both the \fBctest\fP output summary and in dashboard submissions.
+They can also be used to filter the set of tests to be executed (see the
+\fBctest \-L\fP and \fBctest \-LE\fP CTest Options).
 .sp
-The list is reported in dashboard submissions.
+See Additional Labels for adding labels to a test dynamically during
+test execution.
 .SS MEASUREMENT
 .sp
 Specify a \fBCDASH\fP measurement and value to be reported for a test.
@@ -9599,7 +9916,11 @@ This property only applies to C# projects.
 New in version 3.18.
 
 .sp
-Set any item metadata on a non\-built file.
+Set any item metadata on a file.
+.sp
+New in version 3.22: This property is honored for all source file types.
+Previously it worked only for non\-built files.
+
 .sp
 Takes a list of \fBKey=Value\fP pairs. Tells the Visual Studio generator to set
 \fBKey\fP to \fBValue\fP as item metadata on the file.
