@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION 3.8)
 
-
 project(FoxEngine)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 include_directories("../common")
 
@@ -37,6 +36,9 @@ file(GLOB_RECURSE SHADERS
 	)
 
 ##file(GLOB ROOT_NAT ../util/glm.natvis)
+
+file(MAKE_DIRECTORY "/../../bin/")
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory "../../../bin/")
 
 # Separate filter for shaders.
 source_group("Shaders" FILES ${SHADERS})
